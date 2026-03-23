@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Publicação de App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #6554C0; /* Roxo */
+            --primary-hover: #52439A; /* Roxo mais escuro para o botão */
+            --bg-color: #F4F5F7;
+            --text-color: #333;
+            --border-color: #DFE1E6;
+            --error-color: #DE350B;
+            --warning-color: #FF991F;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        input[readonly] {
+            background-color: #EBECF0;
+            color: #5E6C84;
+            cursor: not-allowed;
+            border-color: transparent;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .counter {
+            font-size: 12px;
+            color: #6B778C;
+            text-align: right;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .counter.warning { color: var(--warning-color); font-weight: bold; }
+        .counter.limit { color: var(--error-color); font-weight: bold; }
+
+        .btn-submit {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Inter', sans-serif;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #6B778C;
+            margin-bottom: 5px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dados para Publicação do App</h2>
+    <form id="appForm">
+        
+        <div class="form-group">
+            <label for="clienteId">Empresa</label>
+            <span class="help-text">Este campo já vem preenchido para sua segurança.</span>
+            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #DFE1E6; margin: 30px 0;">
+
+        <div class="form-group">
+            <label for="nomeLoja">Nome do aplicativo a ser exibido nas lojas</label>
+            <input type="text" id="nomeLoja" name="nomeLoja" maxlength="30" required>
+            <span class="counter" id="counter-nomeLoja">0 / 30</span>
+        </div>
+
+        <div class="form-group">
+            <label for="nomeCelular">Nome do aplicativo a ser exibido no celular</label>
+            <span class="help-text">Recomendamos nomes curtos para não cortar na tela do usuário (Ex: até 12 letras).</span>
+            <input type="text" id="nomeCelular" name="nomeCelular" required>
+        </div>
+
+        <div class="form-group">
+            <label for="subtitulo">Subtítulo/Slogan do app</label>
+            <input type="text" id="subtitulo" name="subtitulo" maxlength="30" required>
+            <span class="counter" id="counter-subtitulo">0 / 30</span>
+        </div>
+
+        <div class="form-group">
+            <label for="descricaoCurta">Breve descrição</label>
+            <textarea id="descricaoCurta" name="descricaoCurta" maxlength="80" required rows="2"></textarea>
+            <span class="counter" id="counter-descricaoCurta">0 / 80</span>
+        </div>
+
+        <div class="form-group">
+            <label for="descricaoCompleta">Descrição completa</label>
+            <textarea id="descricaoCompleta" name="descricaoCompleta" maxlength="2000" required rows="6"></textarea>
+            <span class="counter" id="counter-descricaoCompleta">0 / 2000</span>
+        </div>
+
+        <div class="form-group">
+            <label for="nomePublicador">Nome do publicador (Developer Name)</label>
+            <input type="text" id="nomePublicador" name="nomePublicador" required>
+        </div>
+
+        <div class="form-group">
+            <label for="palavrasChave">Palavras-chave</label>
+            <span class="help-text">Separe por vírgulas. Ex: educação, fitness, produtividade.</span>
+            <input type="text" id="palavrasChave" name="palavrasChave" required>
+        </div>
+
+        <div class="form-group">
+            <label for="categoriaAndroid">Categoria (Android - Google Play)</label>
+            <select id="categoriaAndroid" name="categoriaAndroid" required>
+                <option value="" disabled selected>Selecione uma categoria...</option>
+                <option value="Arte e design">Arte e design</option>
+                <option value="Automóveis e veículos">Automóveis e veículos</option>
+                <option value="Beleza">Beleza</option>
+                <option value="Livros e referências">Livros e referências</option>
+                <option value="Negócios">Negócios</option>
+                <option value="Comunicação">Comunicação</option>
+                <option value="Encontros">Encontros</option>
+                <option value="Educação">Educação</option>
+                <option value="Entretenimento">Entretenimento</option>
+                <option value="Eventos">Eventos</option>
+                <option value="Finanças">Finanças</option>
+                <option value="Alimentação e bebidas">Alimentação e bebidas</option>
+                <option value="Saúde e fitness">Saúde e fitness</option>
+                <option value="Casa e lar">Casa e lar</option>
+                <option value="Bibliotecas e demonstrações">Bibliotecas e demonstrações</option>
+                <option value="Estilo de vida">Estilo de vida</option>
+                <option value="Mapas e navegação">Mapas e navegação</option>
+                <option value="Cuidados médicos">Cuidados médicos</option>
+                <option value="Música e áudio">Música e áudio</option>
+                <option value="Notícias e revistas">Notícias e revistas</option>
+                <option value="Parentalidade">Parentalidade</option>
+                <option value="Personalização">Personalização</option>
+                <option value="Fotografia">Fotografia</option>
+                <option value="Produtividade">Produtividade</option>
+                <option value="Compras">Compras</option>
+                <option value="Redes sociais">Redes sociais</option>
+                <option value="Desporto">Desporto</option>
+                <option value="Ferramentas">Ferramentas</option>
+                <option value="Viagens e locais">Viagens e locais</option>
+                <option value="Editores e leitores de vídeo">Editores e leitores de vídeo</option>
+                <option value="Meteorologia">Meteorologia</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="categoriaIos">Categoria (iOS - App Store)</label>
+            <select id="categoriaIos" name="categoriaIos" required>
+                <option value="" disabled selected>Selecione uma categoria...</option>
+                <option value="Compras">Compras</option>
+                <option value="Desenho e design">Desenho e design</option>
+                <option value="Educação">Educação</option>
+                <option value="Entretenimento">Entretenimento</option>
+                <option value="Esportes">Esportes</option>
+                <option value="Estilo de vida">Estilo de vida</option>
+                <option value="Finanças">Finanças</option>
+                <option value="Foto e vídeo">Foto e vídeo</option>
+                <option value="Gastronomia e bebidas">Gastronomia e bebidas</option>
+                <option value="Jogos">Jogos</option>
+                <option value="Livros">Livros</option>
+                <option value="Medicina">Medicina</option>
+                <option value="Música">Música</option>
+                <option value="Navegação">Navegação</option>
+                <option value="Negócios">Negócios</option>
+                <option value="Para desenvolvedores">Para desenvolvedores</option>
+                <option value="Previsão do tempo">Previsão do tempo</option>
+                <option value="Produtividade">Produtividade</option>
+                <option value="Redes sociais">Redes sociais</option>
+                <option value="Referência">Referência</option>
+                <option value="Revistas e jornais">Revistas e jornais</option>
+                <option value="Saúde e fitness">Saúde e fitness</option>
+                <option value="Stickers">Stickers</option>
+                <option value="Utilidades">Utilidades</option>
+                <option value="Viagens">Viagens</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="whatsapp">Número de contato de Whatsapp</label>
+            <span class="help-text">Apenas números (DDI, DDD e Número). Ex: 555199625316</span>
+            <input type="tel" id="whatsapp" name="whatsapp" maxlength="13" minlength="12" required placeholder="Ex: 555199625316" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <div class="form-group">
+            <label for="emailSuporte">E-mail de suporte para cadastro no app</label>
+            <input type="email" id="emailSuporte" name="emailSuporte" required placeholder="suporte@suaempresa.com">
+        </div>
+
+        <button type="submit" class="btn-submit">Enviar para Validação</button>
+    </form>
+</div>
+
+<script>
+    // Preenche o nome da empresa usando o link (URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeClienteURL = urlParams.get('cliente');
+    
+    if (nomeClienteURL) {
+        document.getElementById('clienteId').value = nomeClienteURL;
+    }
+
+    // Função para atualizar os contadores em tempo real
+    function setupCounters() {
+        const fieldsWithLimits = document.querySelectorAll('input[maxlength]:not(#whatsapp), textarea[maxlength]');
+
+        fieldsWithLimits.forEach(field => {
+            const maxLength = field.getAttribute('maxlength');
+            const counterSpan = document.getElementById(`counter-${field.id}`);
+
+            field.addEventListener('input', () => {
+                const currentLength = field.value.length;
+                counterSpan.textContent = `${currentLength} / ${maxLength}`;
+
+                if (currentLength === parseInt(maxLength)) {
+                    counterSpan.className = 'counter limit';
+                } else if (currentLength >= maxLength * 0.9) { 
+                    counterSpan.className = 'counter warning';
+                } else {
+                    counterSpan.className = 'counter';
+                }
+            });
+        });
+    }
+
+    setupCounters();
+
+    // Intercepta o formulário para mandar pro Webhook
+    document.getElementById('appForm').addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        const WEBHOOK_URL = 'COLE_AQUI_A_URL_DO_SEU_WEBHOOK';
+
+        if (WEBHOOK_URL === 'COLE_AQUI_A_URL_DO_SEU_WEBHOOK') {
+            alert("Atenção: Os dados foram coletados com sucesso!\n\nAgora você precisa configurar a URL do Webhook no código-fonte.");
+            console.log("Dados coletados:", JSON.stringify(data, null, 2));
+            return;
+        }
+
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => {
+            if(response.ok) {
+                alert('Dados enviados com sucesso! Nossa equipe já recebeu as informações.');
+                const clienteAtual = document.getElementById('clienteId').value;
+                this.reset(); 
+                document.getElementById('clienteId').value = clienteAtual;
+                setupCounters(); 
+            } else {
+                alert('Ocorreu um erro ao enviar os dados. Tente novamente.');
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Falha na comunicação com o servidor.');
+        });
+    });
+</script>
+
+</body>
+</html>
