@@ -337,3 +337,55 @@
         e.preventDefault(); 
         
         const formData = new FormData(this);
+        const data = Object.fromEntries(formData.entries());
+
+        const WEBHOOK_URL = 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed';
+
+        if (WEBHOOK_URL === 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed') {
+            alert("Atenção: A configuração de bloqueio funcionou!\n\nAgora você precisa configurar a URL do Webhook no código-fonte para conectar ao Jira.");
+            console.log("Dados:", JSON.stringify(data, null, 2));
+            
+            // Simula o bloqueio na tela para você testar (esconde o form)
+            localStorage.setItem(storageKey, 'true');
+            document.getElementById('appForm').style.display = 'none';
+            document.getElementById('statusMessage').style.display = 'block';
+            return;
+        }
+
+        // Troquei o botão para mostrar que está carregando
+        const btnSubmit = document.querySelector('.btn-submit');
+        const btnOriginalText = btnSubmit.textContent;
+        btnSubmit.textContent = 'Enviando...';
+        btnSubmit.disabled = true;
+
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        })
+        .then(response => {
+            if(response.ok) {
+                // Sucesso! Grava na memória e mostra a tela de bloqueio
+                localStorage.setItem(storageKey, 'true');
+                document.getElementById('appForm').style.display = 'none';
+                document.getElementById('statusMessage').style.display = 'block';
+                window.scrollTo(0,0); // Rola a tela pro topo
+            } else {
+                alert('Ocorreu um erro ao enviar os dados. Tente novamente.');
+                btnSubmit.textContent = btnOriginalText;
+                btnSubmit.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Falha na comunicação. Verifique sua conexão.');
+            btnSubmit.textContent = btnOriginalText;
+            btnSubmit.disabled = false;
+        });
+    });
+</script>
+
+</body>
+</html>
