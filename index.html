@@ -289,12 +289,10 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const nomeClienteURL = urlParams.get('cliente');
-    const forcarLiberacao = urlParams.get('liberar'); // Gatilho secreto para liberar o formulário
+    const forcarLiberacao = urlParams.get('liberar'); 
     
-    // Identificador único para a memória do navegador
     const storageKey = 'appFormEnviado_' + (nomeClienteURL || 'padrao');
 
-    // Se você mandar o link com &liberar=1, ele limpa a memória e libera o form
     if (forcarLiberacao === '1') {
         localStorage.removeItem(storageKey);
     }
@@ -303,7 +301,6 @@
         document.getElementById('clienteId').value = nomeClienteURL;
     }
 
-    // Verifica se já foi enviado. Se sim, esconde o form e mostra a mensagem
     if (localStorage.getItem(storageKey) === 'true') {
         document.getElementById('appForm').style.display = 'none';
         document.getElementById('statusMessage').style.display = 'block';
@@ -339,25 +336,15 @@
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
 
+        // AQUI ESTÁ O SEU LINK CORRETO:
         const WEBHOOK_URL = 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed';
 
-        if (WEBHOOK_URL === 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed') {
-            alert("Atenção: A configuração de bloqueio funcionou!\n\nAgora você precisa configurar a URL do Webhook no código-fonte para conectar ao Jira.");
-            console.log("Dados:", JSON.stringify(data, null, 2));
-            
-            // Simula o bloqueio na tela para você testar (esconde o form)
-            localStorage.setItem(storageKey, 'true');
-            document.getElementById('appForm').style.display = 'none';
-            document.getElementById('statusMessage').style.display = 'block';
-            return;
-        }
-
-        // Troquei o botão para mostrar que está carregando
         const btnSubmit = document.querySelector('.btn-submit');
         const btnOriginalText = btnSubmit.textContent;
         btnSubmit.textContent = 'Enviando...';
         btnSubmit.disabled = true;
 
+        // O envio real acontece aqui agora, sem bloqueios!
         fetch(WEBHOOK_URL, {
             method: 'POST',
             headers: {
@@ -367,11 +354,10 @@
         })
         .then(response => {
             if(response.ok) {
-                // Sucesso! Grava na memória e mostra a tela de bloqueio
                 localStorage.setItem(storageKey, 'true');
                 document.getElementById('appForm').style.display = 'none';
                 document.getElementById('statusMessage').style.display = 'block';
-                window.scrollTo(0,0); // Rola a tela pro topo
+                window.scrollTo(0,0); 
             } else {
                 alert('Ocorreu um erro ao enviar os dados. Tente novamente.');
                 btnSubmit.textContent = btnOriginalText;
@@ -386,6 +372,3 @@
         });
     });
 </script>
-
-</body>
-</html>
