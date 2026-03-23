@@ -8,13 +8,14 @@
     
     <style>
         :root {
-            --primary-color: #6554C0; /* Roxo */
-            --primary-hover: #52439A; /* Roxo mais escuro para o botão */
+            --primary-color: #6554C0; 
+            --primary-hover: #52439A; 
             --bg-color: #F4F5F7;
             --text-color: #333;
             --border-color: #DFE1E6;
             --error-color: #DE350B;
             --warning-color: #FF991F;
+            --success-color: #00875A; /* Verde para sucesso */
         }
 
         body {
@@ -120,18 +121,41 @@
             margin-bottom: 5px;
             display: block;
         }
+
+        /* Estilo da mensagem de sucesso / bloqueio */
+        #statusMessage {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        #statusMessage h3 {
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+        
+        #statusMessage p {
+            color: #5E6C84;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h2>Dados para Publicação do App</h2>
+    
+    <div id="statusMessage">
+        <h3>Formulário já recebido! ✅</h3>
+        <p>Os dados do seu aplicativo já foram enviados para a nossa equipe e estão em validação.</p>
+        <p>Caso precise alterar alguma informação, por favor, entre em contato conosco diretamente.</p>
+    </div>
+
     <form id="appForm">
         
         <div class="form-group">
             <label for="clienteId">Empresa</label>
             <span class="help-text">Este campo já vem preenchido para sua segurança.</span>
-            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly>
+            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly required>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #DFE1E6; margin: 30px 0;">
@@ -263,15 +287,28 @@
 </div>
 
 <script>
-    // Preenche o nome da empresa usando o link (URL)
     const urlParams = new URLSearchParams(window.location.search);
     const nomeClienteURL = urlParams.get('cliente');
+    const forcarLiberacao = urlParams.get('liberar'); // Gatilho secreto para liberar o formulário
     
+    // Identificador único para a memória do navegador
+    const storageKey = 'appFormEnviado_' + (nomeClienteURL || 'padrao');
+
+    // Se você mandar o link com &liberar=1, ele limpa a memória e libera o form
+    if (forcarLiberacao === '1') {
+        localStorage.removeItem(storageKey);
+    }
+
     if (nomeClienteURL) {
         document.getElementById('clienteId').value = nomeClienteURL;
     }
 
-    // Função para atualizar os contadores em tempo real
+    // Verifica se já foi enviado. Se sim, esconde o form e mostra a mensagem
+    if (localStorage.getItem(storageKey) === 'true') {
+        document.getElementById('appForm').style.display = 'none';
+        document.getElementById('statusMessage').style.display = 'block';
+    }
+
     function setupCounters() {
         const fieldsWithLimits = document.querySelectorAll('input[maxlength]:not(#whatsapp), textarea[maxlength]');
 
@@ -296,45 +333,7 @@
 
     setupCounters();
 
-    // Intercepta o formulário para mandar pro Webhook
     document.getElementById('appForm').addEventListener('submit', function(e) {
         e.preventDefault(); 
         
         const formData = new FormData(this);
-        const data = Object.fromEntries(formData.entries());
-
-        const WEBHOOK_URL = 'COLE_AQUI_A_URL_DO_SEU_WEBHOOK';
-
-        if (WEBHOOK_URL === 'COLE_AQUI_A_URL_DO_SEU_WEBHOOK') {
-            alert("Atenção: Os dados foram coletados com sucesso!\n\nAgora você precisa configurar a URL do Webhook no código-fonte.");
-            console.log("Dados coletados:", JSON.stringify(data, null, 2));
-            return;
-        }
-
-        fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        })
-        .then(response => {
-            if(response.ok) {
-                alert('Dados enviados com sucesso! Nossa equipe já recebeu as informações.');
-                const clienteAtual = document.getElementById('clienteId').value;
-                this.reset(); 
-                document.getElementById('clienteId').value = clienteAtual;
-                setupCounters(); 
-            } else {
-                alert('Ocorreu um erro ao enviar os dados. Tente novamente.');
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Falha na comunicação com o servidor.');
-        });
-    });
-</script>
-
-</body>
-</html>
