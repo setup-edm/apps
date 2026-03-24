@@ -6,6 +6,13 @@
     <title>Formulário de Publicação de App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("p_1mQFdmHdgiRcLHQ"); 
+        })();
+    </script>
+
     <style>
         :root {
             --primary-color: #6554C0;
@@ -289,11 +296,6 @@
 </div>
 
 <script>
-    // ─────────────────────────────────────────────
-    // CONFIGURAÇÃO — cole aqui a URL do webhook Make
-    // ─────────────────────────────────────────────
-    const WEBHOOK_URL = 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed';
-
     // Preenche o nome da empresa usando o parâmetro da URL (?cliente=NOME)
     const urlParams = new URLSearchParams(window.location.search);
     const nomeClienteURL = urlParams.get('cliente');
@@ -314,133 +316,4 @@
                 counterSpan.textContent = `${len} / ${maxLength}`;
                 if (len === maxLength) {
                     counterSpan.className = 'counter limit';
-                } else if (len >= maxLength * 0.9) {
-                    counterSpan.className = 'counter warning';
-                } else {
-                    counterSpan.className = 'counter';
-                }
-            };
-            field.addEventListener('input', update);
-            update();
-        });
-    }
-    setupCounters();
-
-    // Monta o payload com os dados brutos + descrição formatada para o Jira
-    function buildPayload(data) {
-        const descricaoJira = [
-            '**Dados do Aplicativo**',
-            '',
-            '**Nome do aplicativo a ser exibido nas lojas (até 30 letras):**',
-            data.nomeLoja,
-            '',
-            '**Nome do aplicativo a ser exibido no celular:**',
-            data.nomeCelular,
-            '',
-            '**Subtítulo/Slogan do app (até 30 letras):**',
-            data.subtitulo,
-            '',
-            '**Nome do publicador:**',
-            data.nomePublicador,
-            '',
-            '**Breve descrição (até 80 letras):**',
-            data.descricaoCurta,
-            '',
-            '**Descrição completa (até 2000 letras):**',
-            data.descricaoCompleta,
-            '',
-            '**Categoria Android (Google Play):**',
-            data.categoriaAndroid,
-            '',
-            '**Categoria iOS (App Store):**',
-            data.categoriaIos,
-            '',
-            '**Palavras-chave:**',
-            data.palavrasChave,
-            '',
-            '**Contato de suporte:**',
-            `WhatsApp: ${data.whatsapp}`,
-            `E-mail: ${data.emailSuporte}`,
-        ].join('\n');
-
-        return {
-            // Campos individuais (úteis para filtros/condições no Make)
-            cliente: data.clienteId,
-            nomeLoja: data.nomeLoja,
-            nomeCelular: data.nomeCelular,
-            subtitulo: data.subtitulo,
-            descricaoCurta: data.descricaoCurta,
-            descricaoCompleta: data.descricaoCompleta,
-            nomePublicador: data.nomePublicador,
-            palavrasChave: data.palavrasChave,
-            categoriaAndroid: data.categoriaAndroid,
-            categoriaIos: data.categoriaIos,
-            whatsapp: data.whatsapp,
-            emailSuporte: data.emailSuporte,
-            // Bloco de descrição já formatado no padrão Jira
-            descricaoJira: descricaoJira,
-            // Metadados
-            submittedAt: new Date().toISOString(),
-            jiraProject: 'FDC',
-        };
-    }
-
-    // Submissão do formulário
-    document.getElementById('appForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        const data = Object.fromEntries(formData.entries());
-        const payload = buildPayload(data);
-
-        const btn = document.getElementById('btnSubmit');
-        const statusMsg = document.getElementById('statusMsg');
-
-        // Modo de teste local (sem webhook configurado)
-        if (WEBHOOK_URL === 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed') {
-            console.log('=== DADOS QUE SERÃO ENVIADOS AO MAKE/JIRA ===');
-            console.log(JSON.stringify(payload, null, 2));
-            statusMsg.className = 'status-msg error';
-            statusMsg.textContent = '⚠️ Webhook não configurado. Abra o console do navegador (F12) para ver os dados.';
-            statusMsg.style.display = 'block';
-            return;
-        }
-
-        // Envio real
-        btn.disabled = true;
-        btn.textContent = 'Enviando...';
-        statusMsg.style.display = 'none';
-
-        fetch(WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-        })
-        .then(response => {
-            if (response.ok) {
-                statusMsg.className = 'status-msg success';
-                statusMsg.textContent = '✅ Dados enviados com sucesso! Nossa equipe já recebeu as informações.';
-                statusMsg.style.display = 'block';
-                const clienteAtual = document.getElementById('clienteId').value;
-                this.reset();
-                document.getElementById('clienteId').value = clienteAtual;
-                setupCounters();
-            } else {
-                throw new Error(`HTTP ${response.status}`);
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            statusMsg.className = 'status-msg error';
-            statusMsg.textContent = '❌ Erro ao enviar. Por favor, tente novamente ou entre em contato com o suporte.';
-            statusMsg.style.display = 'block';
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.textContent = 'Enviar para Validação';
-        });
-    });
-</script>
-
-</body>
-</html>
+                } else if (len >= maxLength *
