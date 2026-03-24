@@ -130,32 +130,34 @@
             display: block;
         }
 
+        /* Mensagem de sucesso maior para quando o form sumir */
         .status-msg {
             display: none;
-            margin-top: 16px;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 30px 20px;
+            border-radius: 8px;
+            font-size: 16px;
             text-align: center;
+            line-height: 1.5;
         }
         .status-msg.success {
             background-color: #E3FCEF;
             color: #006644;
-            border: 1px solid #ABF5D1;
+            border: 2px solid #ABF5D1;
         }
         .status-msg.error {
             background-color: #FFEBE6;
             color: #BF2600;
-            border: 1px solid #FFBDAD;
+            border: 2px solid #FFBDAD;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Dados para Publicação do App</h2>
+    <div class="status-msg" id="statusMsg"></div>
+
     <form id="appForm">
+        <h2>Dados para Publicação do App</h2>
 
         <div class="form-group">
             <label for="clienteId">Empresa</label>
@@ -288,28 +290,26 @@
         </div>
 
         <button type="submit" class="btn-submit" id="btnSubmit">Enviar para Validação</button>
-        <div class="status-msg" id="statusMsg"></div>
     </form>
 </div>
 
 <script>
-    // GARANTIA: O script só roda quando a página inteira termina de carregar
     window.onload = function() {
         
-        // 1. Puxar o nome do cliente pelo Link
+        // Puxa o nome
         try {
             var urlParams = new URLSearchParams(window.location.search);
             var nomeCliente = urlParams.get('cliente');
             if (nomeCliente) {
                 document.getElementById('clienteId').value = nomeCliente;
             }
-        } catch(e) { console.error('Erro na URL', e); }
+        } catch(e) {}
 
-        // 2. Lógica dos contadores
+        // Contadores
         try {
-            var camposComLimite = document.querySelectorAll('input[maxlength], textarea[maxlength]');
-            for (var i = 0; i < camposComLimite.length; i++) {
-                var campo = camposComLimite[i];
+            var campos = document.querySelectorAll('input[maxlength], textarea[maxlength]');
+            for (var i = 0; i < campos.length; i++) {
+                var campo = campos[i];
                 if (campo.id === 'whatsapp') continue;
 
                 campo.addEventListener('input', function() {
@@ -323,15 +323,14 @@
                         else span.style.color = '#6B778C';
                     }
                 });
-                campo.dispatchEvent(new Event('input')); // Inicia os contadores no 0
+                campo.dispatchEvent(new Event('input'));
             }
-        } catch(e) { console.error('Erro nos contadores', e); }
+        } catch(e) {}
 
-        // 3. Travar a tela branca e enviar o E-mail
+        // Envio do Form
         var formulario = document.getElementById('appForm');
         formulario.onsubmit = function(event) {
-            
-            event.preventDefault(); // ISSO AQUI É A TRAVA QUE IMPEDE O REFRESH E A TELA BRANCA!
+            event.preventDefault(); 
             
             var btn = document.getElementById('btnSubmit');
             var statusMsg = document.getElementById('statusMsg');
@@ -342,22 +341,20 @@
 
             emailjs.sendForm('service_efu2fsg', 'template_s6wr935', this)
                 .then(function() {
+                    // AQUI É ONDE O FORMULÁRIO SOME E A MENSAGEM APARECE
+                    formulario.style.display = 'none';
+                    
                     statusMsg.className = 'status-msg success';
-                    statusMsg.textContent = '✅ Dados enviados com sucesso! Nossa equipe já recebeu as informações.';
+                    statusMsg.innerHTML = '<strong>✅ Tudo certo!</strong><br><br>Recebemos as informações da sua empresa com sucesso. Você já pode fechar esta página.';
                     statusMsg.style.display = 'block';
                     
-                    var clienteSalvo = document.getElementById('clienteId').value;
-                    formulario.reset();
-                    document.getElementById('clienteId').value = clienteSalvo;
                     window.scrollTo(0, 0);
                 })
                 .catch(function(erro) {
-                    console.error('Falha EmailJS:', erro);
+                    console.error(erro);
                     statusMsg.className = 'status-msg error';
                     statusMsg.textContent = '❌ Erro ao enviar. Verifique sua conexão e tente novamente.';
                     statusMsg.style.display = 'block';
-                })
-                .finally(function() {
                     btn.disabled = false;
                     btn.textContent = 'Enviar para Validação';
                 });
