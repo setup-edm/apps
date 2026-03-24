@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulário de Publicação de App</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         :root {
-            --primary-color: #6554C0; 
-            --primary-hover: #52439A; 
+            --primary-color: #6554C0;
+            --primary-hover: #52439A;
             --bg-color: #F4F5F7;
             --text-color: #333;
             --border-color: #DFE1E6;
             --error-color: #DE350B;
             --warning-color: #FF991F;
-            --success-color: #00875A; /* Verde para sucesso */
         }
 
         body {
@@ -115,6 +114,11 @@
             background-color: var(--primary-hover);
         }
 
+        .btn-submit:disabled {
+            background-color: #B3A9E8;
+            cursor: not-allowed;
+        }
+
         .help-text {
             font-size: 12px;
             color: #6B778C;
@@ -122,20 +126,24 @@
             display: block;
         }
 
-        /* Estilo da mensagem de sucesso / bloqueio */
-        #statusMessage {
+        .status-msg {
             display: none;
+            margin-top: 16px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
             text-align: center;
-            padding: 40px 20px;
         }
-
-        #statusMessage h3 {
-            color: var(--success-color);
-            margin-bottom: 10px;
+        .status-msg.success {
+            background-color: #E3FCEF;
+            color: #006644;
+            border: 1px solid #ABF5D1;
         }
-        
-        #statusMessage p {
-            color: #5E6C84;
+        .status-msg.error {
+            background-color: #FFEBE6;
+            color: #BF2600;
+            border: 1px solid #FFBDAD;
         }
     </style>
 </head>
@@ -143,19 +151,12 @@
 
 <div class="container">
     <h2>Dados para Publicação do App</h2>
-    
-    <div id="statusMessage">
-        <h3>Formulário já recebido! ✅</h3>
-        <p>Os dados do seu aplicativo já foram enviados para a nossa equipe e estão em validação.</p>
-        <p>Caso precise alterar alguma informação, por favor, entre em contato conosco diretamente.</p>
-    </div>
-
     <form id="appForm">
-        
+
         <div class="form-group">
             <label for="clienteId">Empresa</label>
             <span class="help-text">Este campo já vem preenchido para sua segurança.</span>
-            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly required>
+            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #DFE1E6; margin: 30px 0;">
@@ -282,93 +283,164 @@
             <input type="email" id="emailSuporte" name="emailSuporte" required placeholder="suporte@suaempresa.com">
         </div>
 
-        <button type="submit" class="btn-submit">Enviar para Validação</button>
+        <button type="submit" class="btn-submit" id="btnSubmit">Enviar para Validação</button>
+        <div class="status-msg" id="statusMsg"></div>
     </form>
 </div>
 
 <script>
+    // ─────────────────────────────────────────────
+    // CONFIGURAÇÃO — cole aqui a URL do webhook Make
+    // ─────────────────────────────────────────────
+    const WEBHOOK_URL = 'COLE_AQUI_A_URL_DO_SEU_WEBHOOK_NO_MAKE';
+
+    // Preenche o nome da empresa usando o parâmetro da URL (?cliente=NOME)
     const urlParams = new URLSearchParams(window.location.search);
     const nomeClienteURL = urlParams.get('cliente');
-    const forcarLiberacao = urlParams.get('liberar'); 
-    
-    const storageKey = 'appFormEnviado_' + (nomeClienteURL || 'padrao');
-
-    if (forcarLiberacao === '1') {
-        localStorage.removeItem(storageKey);
-    }
-
     if (nomeClienteURL) {
-        document.getElementById('clienteId').value = nomeClienteURL;
+        document.getElementById('clienteId').value = decodeURIComponent(nomeClienteURL);
     }
 
-    if (localStorage.getItem(storageKey) === 'true') {
-        document.getElementById('appForm').style.display = 'none';
-        document.getElementById('statusMessage').style.display = 'block';
-    }
-
+    // Contadores de caracteres em tempo real
     function setupCounters() {
         const fieldsWithLimits = document.querySelectorAll('input[maxlength]:not(#whatsapp), textarea[maxlength]');
-
         fieldsWithLimits.forEach(field => {
-            const maxLength = field.getAttribute('maxlength');
+            const maxLength = parseInt(field.getAttribute('maxlength'));
             const counterSpan = document.getElementById(`counter-${field.id}`);
+            if (!counterSpan) return;
 
-            field.addEventListener('input', () => {
-                const currentLength = field.value.length;
-                counterSpan.textContent = `${currentLength} / ${maxLength}`;
-
-                if (currentLength === parseInt(maxLength)) {
+            const update = () => {
+                const len = field.value.length;
+                counterSpan.textContent = `${len} / ${maxLength}`;
+                if (len === maxLength) {
                     counterSpan.className = 'counter limit';
-                } else if (currentLength >= maxLength * 0.9) { 
+                } else if (len >= maxLength * 0.9) {
                     counterSpan.className = 'counter warning';
                 } else {
                     counterSpan.className = 'counter';
                 }
-            });
+            };
+            field.addEventListener('input', update);
+            update();
         });
     }
-
     setupCounters();
 
-    document.getElementById('appForm').addEventListener('submit', function(e) {
-        e.preventDefault(); 
-        
+    // Monta o payload com os dados brutos + descrição formatada para o Jira
+    function buildPayload(data) {
+        const descricaoJira = [
+            '**Dados do Aplicativo**',
+            '',
+            '**Nome do aplicativo a ser exibido nas lojas (até 30 letras):**',
+            data.nomeLoja,
+            '',
+            '**Nome do aplicativo a ser exibido no celular:**',
+            data.nomeCelular,
+            '',
+            '**Subtítulo/Slogan do app (até 30 letras):**',
+            data.subtitulo,
+            '',
+            '**Nome do publicador:**',
+            data.nomePublicador,
+            '',
+            '**Breve descrição (até 80 letras):**',
+            data.descricaoCurta,
+            '',
+            '**Descrição completa (até 2000 letras):**',
+            data.descricaoCompleta,
+            '',
+            '**Categoria Android (Google Play):**',
+            data.categoriaAndroid,
+            '',
+            '**Categoria iOS (App Store):**',
+            data.categoriaIos,
+            '',
+            '**Palavras-chave:**',
+            data.palavrasChave,
+            '',
+            '**Contato de suporte:**',
+            `WhatsApp: ${data.whatsapp}`,
+            `E-mail: ${data.emailSuporte}`,
+        ].join('\n');
+
+        return {
+            // Campos individuais (úteis para filtros/condições no Make)
+            cliente: data.clienteId,
+            nomeLoja: data.nomeLoja,
+            nomeCelular: data.nomeCelular,
+            subtitulo: data.subtitulo,
+            descricaoCurta: data.descricaoCurta,
+            descricaoCompleta: data.descricaoCompleta,
+            nomePublicador: data.nomePublicador,
+            palavrasChave: data.palavrasChave,
+            categoriaAndroid: data.categoriaAndroid,
+            categoriaIos: data.categoriaIos,
+            whatsapp: data.whatsapp,
+            emailSuporte: data.emailSuporte,
+            // Bloco de descrição já formatado no padrão Jira
+            descricaoJira: descricaoJira,
+            // Metadados
+            submittedAt: new Date().toISOString(),
+            jiraProject: 'FDC',
+        };
+    }
+
+    // Submissão do formulário
+    document.getElementById('appForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
         const formData = new FormData(this);
         const data = Object.fromEntries(formData.entries());
+        const payload = buildPayload(data);
 
-        // AQUI ESTÁ O SEU LINK CORRETO:
-        const WEBHOOK_URL = 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed';
+        const btn = document.getElementById('btnSubmit');
+        const statusMsg = document.getElementById('statusMsg');
 
-        const btnSubmit = document.querySelector('.btn-submit');
-        const btnOriginalText = btnSubmit.textContent;
-        btnSubmit.textContent = 'Enviando...';
-        btnSubmit.disabled = true;
+        // Modo de teste local (sem webhook configurado)
+        if (WEBHOOK_URL === 'https://hook.us2.make.com/s0xlht14d2xso8ysy813msi34graqzed') {
+            console.log('=== DADOS QUE SERÃO ENVIADOS AO MAKE/JIRA ===');
+            console.log(JSON.stringify(payload, null, 2));
+            statusMsg.className = 'status-msg error';
+            statusMsg.textContent = '⚠️ Webhook não configurado. Abra o console do navegador (F12) para ver os dados.';
+            statusMsg.style.display = 'block';
+            return;
+        }
 
-        // O envio real acontece aqui agora, sem bloqueios!
+        // Envio real
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        statusMsg.style.display = 'none';
+
         fetch(WEBHOOK_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
         })
         .then(response => {
-            if(response.ok) {
-                localStorage.setItem(storageKey, 'true');
-                document.getElementById('appForm').style.display = 'none';
-                document.getElementById('statusMessage').style.display = 'block';
-                window.scrollTo(0,0); 
+            if (response.ok) {
+                statusMsg.className = 'status-msg success';
+                statusMsg.textContent = '✅ Dados enviados com sucesso! Nossa equipe já recebeu as informações.';
+                statusMsg.style.display = 'block';
+                const clienteAtual = document.getElementById('clienteId').value;
+                this.reset();
+                document.getElementById('clienteId').value = clienteAtual;
+                setupCounters();
             } else {
-                alert('Ocorreu um erro ao enviar os dados. Tente novamente.');
-                btnSubmit.textContent = btnOriginalText;
-                btnSubmit.disabled = false;
+                throw new Error(`HTTP ${response.status}`);
             }
         })
         .catch(error => {
             console.error('Erro:', error);
-            alert('Falha na comunicação. Verifique sua conexão.');
-            btnSubmit.textContent = btnOriginalText;
-            btnSubmit.disabled = false;
+            statusMsg.className = 'status-msg error';
+            statusMsg.textContent = '❌ Erro ao enviar. Por favor, tente novamente ou entre em contato com o suporte.';
+            statusMsg.style.display = 'block';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'Enviar para Validação';
         });
     });
 </script>
+
+</body>
+</html>
