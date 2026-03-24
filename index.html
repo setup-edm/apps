@@ -163,7 +163,7 @@
         <div class="form-group">
             <label for="clienteId">Empresa</label>
             <span class="help-text">Este campo já vem preenchido para sua segurança.</span>
-            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly>
+            <input type="text" id="clienteId" name="clienteId" value="NOME DA EMPRESA" readonly required>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #DFE1E6; margin: 30px 0;">
@@ -240,4 +240,136 @@
                 <option value="Compras">Compras</option>
                 <option value="Redes sociais">Redes sociais</option>
                 <option value="Desporto">Desporto</option>
-                <option value="Ferramentas">
+                <option value="Ferramentas">Ferramentas</option>
+                <option value="Viagens e locais">Viagens e locais</option>
+                <option value="Editores e leitores de vídeo">Editores e leitores de vídeo</option>
+                <option value="Meteorologia">Meteorologia</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="categoriaIos">Categoria (iOS - App Store)</label>
+            <select id="categoriaIos" name="categoriaIos" required>
+                <option value="" disabled selected>Selecione uma categoria...</option>
+                <option value="Compras">Compras</option>
+                <option value="Desenho e design">Desenho e design</option>
+                <option value="Educação">Educação</option>
+                <option value="Entretenimento">Entretenimento</option>
+                <option value="Esportes">Esportes</option>
+                <option value="Estilo de vida">Estilo de vida</option>
+                <option value="Finanças">Finanças</option>
+                <option value="Foto e vídeo">Foto e vídeo</option>
+                <option value="Gastronomia e bebidas">Gastronomia e bebidas</option>
+                <option value="Jogos">Jogos</option>
+                <option value="Livros">Livros</option>
+                <option value="Medicina">Medicina</option>
+                <option value="Música">Música</option>
+                <option value="Navegação">Navegação</option>
+                <option value="Negócios">Negócios</option>
+                <option value="Para desenvolvedores">Para desenvolvedores</option>
+                <option value="Previsão do tempo">Previsão do tempo</option>
+                <option value="Produtividade">Produtividade</option>
+                <option value="Redes sociais">Redes sociais</option>
+                <option value="Referência">Referência</option>
+                <option value="Revistas e jornais">Revistas e jornais</option>
+                <option value="Saúde e fitness">Saúde e fitness</option>
+                <option value="Stickers">Stickers</option>
+                <option value="Utilidades">Utilidades</option>
+                <option value="Viagens">Viagens</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="whatsapp">Número de contato de Whatsapp</label>
+            <span class="help-text">Apenas números (DDI, DDD e Número). Ex: 555199625316</span>
+            <input type="tel" id="whatsapp" name="whatsapp" maxlength="13" minlength="12" required placeholder="Ex: 555199625316" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        </div>
+
+        <div class="form-group">
+            <label for="emailSuporte">E-mail de suporte para cadastro no app</label>
+            <input type="email" id="emailSuporte" name="emailSuporte" required placeholder="suporte@suaempresa.com">
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">Enviar para Validação</button>
+        <div class="status-msg" id="statusMsg"></div>
+    </form>
+</div>
+
+<script>
+    // 1. Puxando o nome da empresa pela URL (Simples e direto, sem decodificador extra quebrando o script)
+    const urlParams = new URLSearchParams(window.location.search);
+    const nomeClienteURL = urlParams.get('cliente');
+    
+    if (nomeClienteURL) {
+        document.getElementById('clienteId').value = nomeClienteURL;
+    }
+
+    // 2. Contadores de caracteres
+    function setupCounters() {
+        const fieldsWithLimits = document.querySelectorAll('input[maxlength]:not(#whatsapp), textarea[maxlength]');
+        fieldsWithLimits.forEach(field => {
+            const maxLength = parseInt(field.getAttribute('maxlength'));
+            const counterSpan = document.getElementById(`counter-${field.id}`);
+            if (!counterSpan) return;
+
+            const update = () => {
+                const len = field.value.length;
+                counterSpan.textContent = `${len} / ${maxLength}`;
+                if (len === maxLength) {
+                    counterSpan.className = 'counter limit';
+                } else if (len >= maxLength * 0.9) {
+                    counterSpan.className = 'counter warning';
+                } else {
+                    counterSpan.className = 'counter';
+                }
+            };
+            field.addEventListener('input', update);
+            update();
+        });
+    }
+    setupCounters();
+
+    // 3. Envio pelo EmailJS
+    document.getElementById('appForm').addEventListener('submit', function (e) {
+        e.preventDefault(); // Impede a página de recarregar e ficar em branco
+
+        const btn = document.getElementById('btnSubmit');
+        const statusMsg = document.getElementById('statusMsg');
+
+        // Mostra o botão carregando
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+        statusMsg.style.display = 'none';
+
+        const SERVICE_ID = 'service_efu2fsg';
+        const TEMPLATE_ID = 'template_s6wr935';
+
+        emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, this)
+            .then(() => {
+                statusMsg.className = 'status-msg success';
+                statusMsg.textContent = '✅ Dados enviados com sucesso! Nossa equipe já recebeu as informações.';
+                statusMsg.style.display = 'block';
+                
+                // Limpa o formulário mas mantém o nome do cliente
+                const clienteAtual = document.getElementById('clienteId').value;
+                document.getElementById('appForm').reset();
+                document.getElementById('clienteId').value = clienteAtual;
+                
+                setupCounters(); // Zera os números visuais
+                window.scrollTo(0, 0); // Sobe a página
+            })
+            .catch((error) => {
+                console.error('Erro no EmailJS:', error);
+                statusMsg.className = 'status-msg error';
+                statusMsg.textContent = '❌ Erro ao enviar. Verifique sua conexão e tente novamente.';
+                statusMsg.style.display = 'block';
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.textContent = 'Enviar para Validação';
+            });
+    });
+</script>
+
+</body>
+</html>
